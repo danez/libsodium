@@ -7,12 +7,14 @@ set(LIBSODIUM_SRCS
   "libsodium/src/libsodium/crypto_hash/crypto_hash.c"
   "libsodium/src/libsodium/crypto_hash/sha256/cp/hash_sha256_cp.c"
   "libsodium/src/libsodium/crypto_hash/sha256/hash_sha256.c"
+  "libsodium/src/libsodium/crypto_hash/sha512/cp/hash_sha512_cp.c"
   "libsodium/src/libsodium/crypto_onetimeauth/crypto_onetimeauth.c"
   "libsodium/src/libsodium/crypto_onetimeauth/poly1305/donna/poly1305_donna.c"
   "libsodium/src/libsodium/crypto_onetimeauth/poly1305/onetimeauth_poly1305.c"
   "libsodium/src/libsodium/crypto_scalarmult/crypto_scalarmult.c"
   "libsodium/src/libsodium/crypto_scalarmult/curve25519/ref10/x25519_ref10.c"
   "libsodium/src/libsodium/crypto_scalarmult/curve25519/scalarmult_curve25519.c"
+  "libsodium/src/libsodium/crypto_sign/ed25519/ref10/open.c"
   "libsodium/src/libsodium/crypto_stream/chacha20/ref/chacha20_ref.c"
   "libsodium/src/libsodium/crypto_stream/chacha20/stream_chacha20.c"
   "libsodium/src/libsodium/crypto_stream/crypto_stream.c"
@@ -33,6 +35,9 @@ set(LIBSODIUM_SRCS
   # Replaces upstream sodium/version.c, which cannot be used because including
   # its version.h on ESP8266 picks up the ESP SDK's version.h instead.
   "port/version.c"
+  # open.c shares this small hash initializer with the signing implementation,
+  # which is intentionally not part of this verification-only build.
+  "port/ed25519_ref10_hinit.c"
   # X25519 ladder and base point multiply for cores without a 32x32->64
   # multiply (ESP8266, Cortex-M0+); compiled but unreferenced elsewhere and
   # dropped by --gc-sections
