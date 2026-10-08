@@ -39,6 +39,7 @@
 
 #include <sodium/crypto_aead_chacha20poly1305.h>
 #include <sodium/crypto_hash_sha256.h>
+#include <sodium/crypto_hash_sha512.h>
 #include <sodium/crypto_onetimeauth_poly1305.h>
 #include <sodium/crypto_scalarmult_curve25519.h>
 #include <sodium/crypto_sign_ed25519.h>
@@ -628,9 +629,47 @@ static void test_sha256_differential(void)
     printf("sha256: %d differentials against upstream's unrolled transform\n", cases);
 }
 
+int ref_sha512(unsigned char *out, const unsigned char *in, unsigned long long inlen);
+void _crypto_sign_ed25519_ref10_hinit(crypto_hash_sha512_state *hs, int prehashed);
+
+static void test_sha512(void)
+{
+    unsigned char msg[1024], ours[64], theirs[64];
+    crypto_hash_sha512_state st;
+    size_t len, off, chunk;
+    char what[96];
+    static const unsigned char prefix[] = "SigEd25519 no Ed25519 collisions\1\0";
+
+    randombytes_buf(msg, sizeof msg);
+    /* Every padding position, including 111/112 and 127/128, over 8 blocks. */
+    for (len = 0; len <= sizeof msg; len++) {
+        crypto_hash_sha512(ours, msg, len);
+        ref_sha512(theirs, msg, len);
+        snprintf(what, sizeof what, "sha512 vs upstream len=%zu", len);
+        check(memcmp(ours, theirs, 64) == 0, what);
+    }
+    for (chunk = 1; chunk <= 129; chunk++) {
+        crypto_hash_sha512_init(&st);
+        for (off = 0; off < sizeof msg; off += chunk) {
+            crypto_hash_sha512_update(&st, msg + off,
+                off + chunk <= sizeof msg ? chunk : sizeof msg - off);
+        }
+        crypto_hash_sha512_final(&st, ours);
+        ref_sha512(theirs, msg, sizeof msg);
+        snprintf(what, sizeof what, "sha512 streamed vs upstream chunk=%zu", chunk);
+        check(memcmp(ours, theirs, 64) == 0, what);
+    }
+    _crypto_sign_ed25519_ref10_hinit(&st, 1);
+    crypto_hash_sha512_final(&st, ours);
+    ref_sha512(theirs, prefix, sizeof prefix - 1);
+    check(memcmp(ours, theirs, 64) == 0, "ed25519 prehashed domain prefix");
+    printf("sha512: 1154 differentials and prehashed domain prefix\n");
+}
+
 int main(void)
 {
     test_ed25519_verify();
+    test_sha512();
     test_sha256();
     test_sha256_differential();
 

@@ -1,5 +1,6 @@
-# Curated subset of libsodium sources built for ESPHome. Only the primitives
-# required by noise-c are compiled; the full tree is far too large for an MCU.
+# Curated subset of libsodium sources built for ESPHome: noise-c primitives,
+# SHA-512 and Ed25519 detached verification. Signing and key generation are
+# excluded; the full tree is far too large for an MCU.
 set(LIBSODIUM_SRCS
   "libsodium/src/libsodium/crypto_aead/chacha20poly1305/aead_chacha20poly1305.c"
   "libsodium/src/libsodium/crypto_core/ed25519/ref10/ed25519_ref10.c"
